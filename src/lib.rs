@@ -137,8 +137,39 @@ impl Display for Observation {
 
 #[cfg(test)]
 mod tests {
-    use float_cmp::assert_approx_eq;
     use super::*;
+    use float_cmp::assert_approx_eq;
+
+    #[test]
+    fn round_trip() {
+        let m = -2.0_f32;
+        let b = -10.0_f32;
+        let count = 201_f32;
+
+        // Generate the training data in a fixed way
+        let domain = 0..(count as usize);
+        let training_data: Vec<Observation> = domain
+            .map(|x| {
+                let x_as_f32 = x as f32;
+                Observation {
+                    x: x_as_f32,
+                    y: m * x_as_f32 + b,
+                }
+            })
+            .collect();
+
+        let model = compute_model(training_data);
+
+        assert_approx_eq!(f32, b, model.alpha);
+        assert_approx_eq!(f32, m, model.beta);
+        assert_approx_eq!(f32, count, model.count);
+        assert_approx_eq!(f32, 20100.0, model.sum_of_x);
+        assert_approx_eq!(f32, 100.0, model.average_of_x);
+        assert_approx_eq!(f32, -42210.0, model.sum_of_y);
+        assert_approx_eq!(f32, -210.0, model.average_of_y);
+        assert_approx_eq!(f32, 0.0, model.root_mean_square_error);
+        assert_approx_eq!(f32, 1.0, model.coefficient_of_determination);
+    }
 
     #[test]
     fn physics_ball_drop_experiment() {

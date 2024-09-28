@@ -1,3 +1,5 @@
+pub mod dataset;
+
 use std::fmt::{Debug, Display, Formatter};
 
 /// Compute a linear model from a list of data
@@ -138,6 +140,7 @@ impl Display for Observation {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::dataset::physics_ball_drop_experiment;
     use float_cmp::assert_approx_eq;
 
     #[test]
@@ -172,29 +175,8 @@ mod tests {
     }
 
     #[test]
-    fn physics_ball_drop_experiment() {
-        let physics_drop_bounce_experiment = vec![
-            Observation { x: 10.0, y: 7.5 },
-            Observation { x: 10.0, y: 7.5 },
-            Observation { x: 10.0, y: 7.0 },
-            Observation { x: 12.0, y: 10.0 },
-            Observation { x: 12.0, y: 10.0 },
-            Observation { x: 12.0, y: 9.75 },
-            Observation { x: 14.0, y: 11.0 },
-            Observation { x: 14.0, y: 11.0 },
-            Observation { x: 14.0, y: 10.5 },
-            Observation { x: 16.0, y: 12.75 },
-            Observation { x: 16.0, y: 13.0 },
-            Observation { x: 16.0, y: 13.0 },
-            Observation { x: 18.0, y: 14.75 },
-            Observation { x: 18.0, y: 14.0 },
-            Observation { x: 18.0, y: 14.5 },
-            Observation { x: 20.0, y: 15.25 },
-            Observation { x: 20.0, y: 15.5 },
-            Observation { x: 20.0, y: 16.0 },
-        ];
-
-        let model = compute_model(physics_drop_bounce_experiment);
+    fn test_physics_ball_drop_experiment() {
+        let model = compute_model(physics_ball_drop_experiment());
 
         assert_approx_eq!(f32, -0.3452387, model.alpha);
         assert_approx_eq!(f32, 0.8119048, model.beta);

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Model and plot</title>
+</head>
+<body>
+    <section id="model_info">
+        <table>
+            <tr>
+                <td>Model</td>
+                <td>y = (0.8119048)x + (-0.3452387)</td>
+            </tr>
+            <tr>
+                <td>⍺</td>
+                <td>-0.3452387</td>
+            </tr>
+            <tr>
+                <td>β</td>
+                <td>0.8119048</td>
+            </tr>
+            <tr>
+                <td>Count</td>
+                <td>18</td>
+            </tr>
+            <tr>
+                <td>Average of x</td>
+                <td>15 = 270 / 18</td>
+            </tr>
+            <tr>
+                <td>Average of y</td>
+                <td>11.833333 = 213 / 18</td>
+            </tr>
+            <tr>
+                <td>RMSE</td>
+                <td>0.41299996</td>
+            </tr>
+            <tr>
+                <td>R²</td>
+                <td>0.9783022</td>
+            </tr>
+        </table>
+        <div id="the_plot"></div>
+    </section>
+</body>
+<script type="module">
+    const data = [{x: 10, y: 7.5},{x: 10, y: 7.5},{x: 10, y: 7},{x: 12, y: 10},{x: 12, y: 10},{x: 12, y: 9.75},{x: 14, y: 11},{x: 14, y: 11},{x: 14, y: 10.5},{x: 16, y: 12.75},{x: 16, y: 13},{x: 16, y: 13},{x: 18, y: 14.75},{x: 18, y: 14},{x: 18, y: 14.5},{x: 20, y: 15.25},{x: 20, y: 15.5},{x: 20, y: 16}];
+    const predictions = [{x: 0, prediction: -0.3452387},{x: 1, prediction: 0.4666661},{x: 2, prediction: 1.2785709},{x: 3, prediction: 2.0904756},{x: 4, prediction: 2.9023805},{x: 5, prediction: 3.7142854},{x: 6, prediction: 4.52619},{x: 7, prediction: 5.3380947},{x: 8, prediction: 6.1499996},{x: 9, prediction: 6.9619045},{x: 10, prediction: 7.7738094},{x: 11, prediction: 8.585714},{x: 12, prediction: 9.397618},{x: 13, prediction: 10.209523},{x: 14, prediction: 11.021428},{x: 15, prediction: 11.833333},{x: 16, prediction: 12.645238},{x: 17, prediction: 13.457143},{x: 18, prediction: 14.269048},{x: 19, prediction: 15.080953},{x: 20, prediction: 15.892858}];
+    const plot = Plot.plot({
+        caption: "Physics experiment measuring bounce height of a rubber ball when dropped from a given height",
+        grid: true,
+        marks: [
+            Plot.axisY({label: "Bounce height measured in number of bricks"}),
+            Plot.axisX({label: "Drop height measured in number of bricks"}),
+            Plot.dot(data, {x: "x", y: "y", tip: true}),
+            Plot.crosshair(data, {x: "x", y: "y"}),
+            Plot.lineY(predictions, {x: "x", y: "prediction", stroke: "blue", strokeOpacity: 0.5}),
+            Plot.ruleY([0]),
+            Plot.ruleX([0])
+        ]
+    });
+    const div = document.querySelector("#the_plot");
+    div.append(plot);
+</script>
+<script src="../src/observable-plot/d3.js"></script>
+<script src="../src/observable-plot/plot.js"></script>
+</html>        

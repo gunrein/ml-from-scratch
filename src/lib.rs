@@ -3,7 +3,7 @@ pub mod dataset;
 use std::fmt::{Debug, Display, Formatter};
 
 /// Compute a linear model from a list of data
-pub fn compute_model(observations: Vec<Observation>) -> LinearModel {
+pub fn compute_model(observations: &[Observation]) -> LinearModel {
     // Convenience function for squaring a number
     let square = |number| f32::powf(number, 2.0);
 
@@ -58,6 +58,109 @@ pub fn compute_model(observations: Vec<Observation>) -> LinearModel {
     }
 }
 
+/// Generates an HTML+JavaScript plot of the data and model
+pub fn plot_as_html(observations: Vec<Observation>, linear_model: LinearModel) -> String {
+    let predictions_as_js_objects = (0..21)
+        .map(|x| {
+            let x_f32 = x as f32;
+            let prediction = linear_model.predict(x as f32);
+            format!("{{x: {x_f32}, prediction: {prediction}}}")
+        })
+        .collect::<Vec<String>>()
+        .join(",");
+    let predictions_as_js_array = format!("[{predictions_as_js_objects}]");
+
+    let observations_as_js_objects = observations
+        .iter()
+        .map(|observation| format!("{{x: {}, y: {}}}", observation.x, observation.y))
+        .collect::<Vec<String>>()
+        .join(",");
+
+    let observations_as_js_array = format!("[{observations_as_js_objects}]");
+    let plot_code = r#"Plot.plot({
+        caption: "Physics experiment measuring bounce height of a rubber ball when dropped from a given height",
+        grid: true,
+        marks: [
+            Plot.axisY({label: "Bounce height measured in number of bricks"}),
+            Plot.axisX({label: "Drop height measured in number of bricks"}),
+            Plot.dot(data, {x: "x", y: "y", tip: true}),
+            Plot.crosshair(data, {x: "x", y: "y"}),
+            Plot.lineY(predictions, {x: "x", y: "prediction", stroke: "blue", strokeOpacity: 0.5}),
+            Plot.ruleY([0]),
+            Plot.ruleX([0])
+        ]
+    })"#;
+
+    let alpha = linear_model.alpha;
+    let beta = linear_model.beta;
+    let count = linear_model.count;
+    let average_of_x = linear_model.average_of_x;
+    let sum_of_x = linear_model.sum_of_x;
+    let average_of_y = linear_model.average_of_y;
+    let sum_of_y = linear_model.sum_of_y;
+    let root_mean_square_error = linear_model.root_mean_square_error;
+    let coefficient_of_determination = linear_model.coefficient_of_determination;
+
+    format!(
+        r##"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Model and plot</title>
+</head>
+<body>
+    <section id="model_info">
+        <table>
+            <tr>
+                <td>Model</td>
+                <td>y = ({beta})x + ({alpha})</td>
+            </tr>
+            <tr>
+                <td>⍺</td>
+                <td>{alpha}</td>
+            </tr>
+            <tr>
+                <td>β</td>
+                <td>{beta}</td>
+            </tr>
+            <tr>
+                <td>Count</td>
+                <td>{count}</td>
+            </tr>
+            <tr>
+                <td>Average of x</td>
+                <td>{average_of_x} = {sum_of_x} / {count}</td>
+            </tr>
+            <tr>
+                <td>Average of y</td>
+                <td>{average_of_y} = {sum_of_y} / {count}</td>
+            </tr>
+            <tr>
+                <td>RMSE</td>
+                <td>{root_mean_square_error}</td>
+            </tr>
+            <tr>
+                <td>R²</td>
+                <td>{coefficient_of_determination}</td>
+            </tr>
+        </table>
+        <div id="the_plot"></div>
+    </section>
+</body>
+<script type="module">
+    const data = {observations_as_js_array};
+    const predictions = {predictions_as_js_array};
+    const plot = {plot_code};
+    const div = document.querySelector("#the_plot");
+    div.append(plot);
+</script>
+<script src="../src/observable-plot/d3.js"></script>
+<script src="../src/observable-plot/plot.js"></script>
+</html>        
+"##
+    )
+}
+
 /// Represents the model and statistics computed from linear regression
 pub struct LinearModel {
     // Model parameter values
@@ -92,7 +195,7 @@ impl Display for LinearModel {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            r#"Model:     y_i = {} * x_i + {}
+            r#"Model:     y = ({})x + ({})
 ⍺:         {}
 β:         {}
 Count:     {}
@@ -161,7 +264,7 @@ mod tests {
             })
             .collect();
 
-        let model = compute_model(training_data);
+        let model = compute_model(&training_data);
 
         assert_approx_eq!(f32, b, model.alpha);
         assert_approx_eq!(f32, m, model.beta);
@@ -176,7 +279,7 @@ mod tests {
 
     #[test]
     fn test_physics_ball_drop_experiment() {
-        let model = compute_model(physics_ball_drop_experiment());
+        let model = compute_model(&physics_ball_drop_experiment());
 
         assert_approx_eq!(f32, -0.3452387, model.alpha);
         assert_approx_eq!(f32, 0.8119048, model.beta);

@@ -148,14 +148,14 @@ pub fn plot_as_html(observations: Vec<Observation>, linear_model: LinearModel) -
     </section>
 </body>
 <script type="module">
+    import * as Plot from "https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm";
+
     const data = {observations_as_js_array};
     const predictions = {predictions_as_js_array};
     const plot = {plot_code};
     const div = document.querySelector("#the_plot");
     div.append(plot);
 </script>
-<script src="../src/observable-plot/d3.js"></script>
-<script src="../src/observable-plot/plot.js"></script>
 </html>        
 "##
     )

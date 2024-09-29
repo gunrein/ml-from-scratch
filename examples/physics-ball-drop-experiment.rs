@@ -1,5 +1,5 @@
-use llm_from_scratch::dataset::physics_ball_drop_experiment;
-use llm_from_scratch::{compute_model, plot_as_html};
+use ml_from_scratch::dataset::physics_ball_drop_experiment;
+use ml_from_scratch::{compute_model, plot_as_html};
 use std::fs;
 
 fn main() -> std::io::Result<()> {

@@ -107,6 +107,7 @@ pub fn plot_as_html(observations: Vec<Observation>, linear_model: LinearModel) -
 <head>
     <meta charset="UTF-8">
     <title>Model and plot</title>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
 </head>
 <body>
     <section id="model_info">

@@ -9,5 +9,15 @@ fn main() -> std::io::Result<()> {
 
     let path = "examples/physics-ball-drop-experiment.html";
     println!("Plot rendered to {}", path);
-    fs::write(path, plot_as_html(data, model))
+    fs::write(
+        path,
+        plot_as_html(
+            "Physics ball drop experiment", 
+            "Physics experiment measuring bounce height of a rubber ball when dropped from a given height",
+            "Bounce height measured in number of bricks",
+            "Drop height measured in number of bricks",
+            data,
+            model
+        ),
+    )
 }

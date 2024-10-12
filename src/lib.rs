@@ -59,8 +59,27 @@ pub fn compute_model(observations: &[Observation]) -> LinearModel {
 }
 
 /// Generates an HTML+JavaScript plot of the data and model
-pub fn plot_as_html(observations: Vec<Observation>, linear_model: LinearModel) -> String {
-    let predictions_as_js_objects = (0..21)
+pub fn plot_as_html(
+    title: &str,
+    caption: &str,
+    y_axis_label: &str,
+    x_axis_label: &str,
+    observations: Vec<Observation>,
+    linear_model: LinearModel,
+) -> String {
+    let min_max_round_and_cast =
+        |min_max: (f32, f32)| (min_max.0.floor() as i32, min_max.1.ceil() as i32);
+    let (min_x, max_x) = min_max_round_and_cast(
+        observations
+            .iter()
+            .fold((0_f32, 0_f32), |min_max, observation| {
+                (min_max.0.min(observation.x), min_max.1.max(observation.x))
+            }),
+    );
+
+    // min_x - 1 since the range is inclusive and we want a prediction for at least 1 full unit below the lowest input
+    // max_x + 2 since the range is exclusive and we want a prediction for at least 1 full unit above the highest input
+    let predictions_as_js_objects = (min_x - 1..max_x + 2)
         .map(|x| {
             let x_f32 = x as f32;
             let prediction = linear_model.predict(x as f32);
@@ -77,19 +96,21 @@ pub fn plot_as_html(observations: Vec<Observation>, linear_model: LinearModel) -
         .join(",");
 
     let observations_as_js_array = format!("[{observations_as_js_objects}]");
-    let plot_code = r#"Plot.plot({
-        caption: "Physics experiment measuring bounce height of a rubber ball when dropped from a given height",
+    let plot_code = format!(
+        r#"Plot.plot({{
+        caption: "{caption}",
         grid: true,
         marks: [
-            Plot.axisY({label: "Bounce height measured in number of bricks"}),
-            Plot.axisX({label: "Drop height measured in number of bricks"}),
-            Plot.dot(data, {x: "x", y: "y", tip: true}),
-            Plot.crosshair(data, {x: "x", y: "y"}),
-            Plot.lineY(predictions, {x: "x", y: "prediction", stroke: "blue", strokeOpacity: 0.5}),
+            Plot.axisY({{label: "{y_axis_label}"}}),
+            Plot.axisX({{label: "{x_axis_label}"}}),
+            Plot.dot(data, {{x: "x", y: "y", tip: true}}),
+            Plot.crosshair(data, {{x: "x", y: "y"}}),
+            Plot.lineY(predictions, {{x: "x", y: "prediction", stroke: "blue", strokeOpacity: 0.5}}),
             Plot.ruleY([0]),
             Plot.ruleX([0])
         ]
-    })"#;
+    }})"#
+    );
 
     let alpha = linear_model.alpha;
     let beta = linear_model.beta;
@@ -106,43 +127,50 @@ pub fn plot_as_html(observations: Vec<Observation>, linear_model: LinearModel) -
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Model and plot</title>
+    <title>{title}</title>
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        #model_info td:nth-child(2) {{
+            text-align: right;
+        }}
+    </style>
 </head>
 <body>
     <section id="model_info">
+        <h1>{title}</h1>
         <table>
             <tr>
                 <td>Model</td>
-                <td>y = ({beta})x + ({alpha})</td>
+                <td>\(y = {beta} x + ({alpha})\)</td>
             </tr>
             <tr>
-                <td>⍺</td>
-                <td>{alpha}</td>
+                <td>\(\alpha\)</td>
+                <td>\({alpha}\)</td>
             </tr>
             <tr>
-                <td>β</td>
-                <td>{beta}</td>
+                <td>\(\beta\)</td>
+                <td>\({beta}\)</td>
             </tr>
             <tr>
                 <td>Count</td>
-                <td>{count}</td>
+                <td>\({count}\)</td>
             </tr>
             <tr>
-                <td>Average of x</td>
-                <td>{average_of_x} = {sum_of_x} / {count}</td>
+                <td>Average of \(x\)</td>
+                <td>\({average_of_x} = {sum_of_x} / {count}\)</td>
             </tr>
             <tr>
-                <td>Average of y</td>
-                <td>{average_of_y} = {sum_of_y} / {count}</td>
+                <td>Average of \(y\)</td>
+                <td>\({average_of_y} = {sum_of_y} / {count}\)</td>
             </tr>
             <tr>
-                <td>RMSE</td>
-                <td>{root_mean_square_error}</td>
+                <td>\(RMSE\)</td>
+                <td>\({root_mean_square_error}\)</td>
             </tr>
             <tr>
-                <td>R²</td>
-                <td>{coefficient_of_determination}</td>
+                <td>\(R^2\)</td>
+                <td>\({coefficient_of_determination}\)</td>
             </tr>
         </table>
         <div id="the_plot"></div>
